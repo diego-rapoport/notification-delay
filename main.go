@@ -15,7 +15,7 @@ func main() {
 	var message string
 	var iconPath string
 	var expireTime int
-	var seconds int
+	var seconds int = 0
 	var delay time.Duration
 
 	// Root command
@@ -26,7 +26,7 @@ func main() {
     Version: "0.0.1",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Validate the input
-			if timeArg == "" && seconds == 0 || message == "" {
+			if (timeArg == "" && seconds == 0) || message == "" {
 				fmt.Println("Error: Must set message and time OR seconds")
 				cmd.Usage()
 				os.Exit(1)
@@ -34,6 +34,7 @@ func main() {
 
 			if timeArg != "" && seconds > 0 {
 				fmt.Println("Error: Cannot set both time and seconds")
+        seconds = 0
 				cmd.Usage()
 				os.Exit(1)
 			}
@@ -63,7 +64,6 @@ func main() {
 			}
 
 			if seconds > 0 {
-        fmt.Printf("Seconds %d\n", seconds)
 				delay = time.Duration(seconds) * time.Second
 				fmt.Printf("Notification scheduled in %.0f seconds\n", delay.Seconds())
 			}
@@ -103,6 +103,7 @@ func main() {
 				}
 			}()
 
+      defer os.Exit(0)
 			wg.Wait()
 		},
 	}
@@ -111,8 +112,8 @@ func main() {
 	rootCmd.Flags().StringVarP(&timeArg, "time", "t", "", "The time to send the notification (HH:MM)")
 	rootCmd.Flags().StringVarP(&message, "message", "m", "", "The message to display in the notification")
 	rootCmd.Flags().StringVarP(&iconPath, "icon", "i", "", "The path to an icon to display with the notification")
-	rootCmd.Flags().IntVarP(&expireTime, "seconds", "s", 0, "The number of seconds to display the notification. Cannot be set with time")
-	rootCmd.Flags().IntVarP(&seconds, "expire-time", "e", 3, "The number of seconds to expire the notification. Defaults to 3")
+	rootCmd.Flags().IntVarP(&expireTime, "seconds", "e", 0, "The number of seconds to display the notification. Cannot be set with time")
+	rootCmd.Flags().IntVarP(&seconds, "expire-time", "s", 0, "The number of seconds to expire the notification")
 
 	// Execute the command
 	if err := rootCmd.Execute(); err != nil {
